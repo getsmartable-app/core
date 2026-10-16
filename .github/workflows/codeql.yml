@@ -1,0 +1,41 @@
+# CodeQL on this repository's GitHub Actions workflows.
+#
+# CodeQL has no Dart analysis, so what it reads here is the workflows
+# themselves: an untrusted value reaching a shell, a token with more than it
+# needs, a pull request from a fork reaching a privileged job. Those are the
+# paths by which a repository's own automation could be turned against it.
+# Results go to Security → Code scanning, free on a public repository.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 5 * * 3'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (actions)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write  # upload the results to code scanning
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          languages: actions
+          build-mode: none
+
+      - uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          category: /language:actions

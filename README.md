@@ -93,7 +93,8 @@ On macOS the tests need full Xcode, not only the Command Line Tools:
 | [CI](.github/workflows/ci.yml) | `flutter analyze` and the full test suite, on Linux and macOS | Every push and pull request |
 | [Dependencies](.github/workflows/dependencies.yml) | [OSV-Scanner](https://google.github.io/osv-scanner/) against every package in `pubspec.lock` | Every push, and weekly |
 | [Scorecard](.github/workflows/scorecard.yml) | [OpenSSF Scorecard](https://securityscorecards.dev): pinned actions, token permissions, branch protection, security policy | Weekly, and on changes to branch protection |
-| [Release](.github/workflows/release.yml) | The tag, `pubspec.yaml` and the changelog checked against each other, the tests, then a source archive, its SHA-256 and a signed provenance attestation | Every version tag |
+| [CodeQL](.github/workflows/codeql.yml) | [CodeQL](https://codeql.github.com) on the workflows themselves — untrusted input reaching a shell, excess token permissions (CodeQL has no Dart analysis) | Every push and pull request, and weekly |
+| [Release](.github/workflows/release.yml) | The tag, `pubspec.yaml` and the changelog checked against each other, the tests, then a source archive, its SHA-256 and a signed provenance attestation, also attached as a file | Every version tag |
 
 Every action is pinned to a full commit SHA. Dependencies are pinned to the
 exact versions the app ships, and `--enforce-lockfile` refuses any other.
