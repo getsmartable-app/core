@@ -1,0 +1,127 @@
+# Publish a release when a version tag is pushed: `git tag v1.0.0 && git push
+# origin v1.0.0`. How a version is numbered and made: docs/releasing.md.
+#
+# Nothing is published unless the tag, the version in pubspec.yaml and a dated
+# entry in CHANGELOG.md agree; that entry becomes the release notes.
+#
+# A release is added beside the earlier ones, never in place of them. Each
+# carries the source exactly as tagged, a SHA-256 checksum, and a provenance
+# attestation: a statement, signed through GitHub's OIDC identity and recorded
+# in the public Sigstore log, that this archive was built from this tag by this
+# workflow. Anyone can check it without trusting us:
+#
+#   gh attestation verify smartable-wallet-core-v1.0.0.tar.gz \
+#     --repo getsmartable-app/core
+#
+# The tests run first. A tag whose tests fail publishes nothing.
+#
+# The attestation proves where the archive came from. It does not prove that
+# an application binary was built from this source — the core is not a build
+# of the app, and no reproducible build is claimed.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.44.8'
+
+jobs:
+  release:
+    name: Test, archive, attest and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write      # create the release
+      id-token: write      # sign the provenance
+      attestations: write  # store it
+    steps:
+      # On GitHub Free an attestation is available to a public repository only,
+      # and a release without one would not be what the README promises.
+      - name: Releases come from the public repository
+        if: github.event.repository.private
+        run: |
+          echo "::error::This repository is private. Releases are published once it is public: GitHub Free attests public repositories only."
+          exit 1
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The changelog's entry for this version, from its heading to the next
+      # one, without the link references at the end of the file.
+      - name: The tag, pubspec.yaml and the changelog agree
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml)
+          if [ "$TAG" != "v$version" ]; then
+            echo "::error::The tag is $TAG and pubspec.yaml says $version."
+            exit 1
+          fi
+          awk -v heading="## [$version] - " '
+            /^## \[/ { if (found) exit; if (index($0, heading) == 1) { found = 1; next } }
+            found && !/^\[[^]]+\]: / { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            echo "::error::CHANGELOG.md has no dated entry for $version."
+            exit 1
+          fi
+          {
+            echo
+            echo '---'
+            echo
+            echo '**Checking this release** — see docs/releasing.md:'
+            echo
+            echo '```bash'
+            echo 'sha256sum -c SHA256SUMS'
+            echo "gh attestation verify smartable-wallet-core-$TAG.tar.gz --repo $GITHUB_REPOSITORY"
+            echo '```'
+          } >> "$RUNNER_TEMP/notes.md"
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Dependencies
+        run: flutter pub get --enforce-lockfile
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      # From git rather than from the working tree, so nothing the steps above
+      # wrote (.dart_tool, build/) can end up in the archive.
+      - name: Source archive and checksum
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          mkdir dist
+          git archive --format=tar.gz \
+            --prefix="smartable-wallet-core-${TAG}/" \
+            -o "dist/smartable-wallet-core-${TAG}.tar.gz" HEAD
+          (cd dist && sha256sum -- *.tar.gz > SHA256SUMS)
+          cat dist/SHA256SUMS
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/smartable-wallet-core-*.tar.gz
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "Smartable Wallet Core $TAG" \
+            --notes-file "$RUNNER_TEMP/notes.md"

@@ -1,0 +1,14 @@
+# Keeps the workflows' actions current: each is pinned to a commit SHA, and
+# Dependabot proposes the next one with its release notes.
+#
+# The Dart packages are pinned to the exact versions the Smartable Wallet
+# application ships and move with it, so they are not updated here. Nor is an
+# accepted action update merged here: this repository is assembled from the
+# application's source, so it is applied there and arrives with the next
+# version (docs/releasing.md).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

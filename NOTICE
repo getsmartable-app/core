@@ -1,0 +1,27 @@
+Smartable Wallet Core
+Copyright 2026 A. Shapialevich
+
+This product is licensed under the Apache License, Version 2.0. The full text
+is in LICENSE.
+
+It includes material from third parties, each under its own licence. Sources
+and terms are in THIRD_PARTY_NOTICES.md and the full licence texts are under
+LICENSES/:
+
+  - SLIP-39 word list and test vectors — MIT, Copyright 2019 SatoshiLabs
+  - Unicode normalization test cases — Unicode License v3,
+    Copyright © 1991-2026 Unicode, Inc.
+
+---
+
+NAMES AND MARKS — NOT LICENSED
+
+The Apache License covers the code. It grants no right to the names
+"Smartable" and "Smartable Wallet", the Smartable logo and app icon, the
+getsmartable.app domain, the application identifier com.smartable.wallet or
+the URL scheme smartable://. A modified version must use a name and an
+identity of its own: in a wallet, the name is what tells a person which build
+is holding their keys. Stating factually that a work is derived from
+Smartable Wallet Core is permitted.
+
+Contact: hello@getsmartable.app

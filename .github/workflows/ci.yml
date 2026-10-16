@@ -1,0 +1,64 @@
+# Analyze and test the core on every push and pull request.
+#
+# Two hosts, because the core runs on two platforms: Linux stands in for the
+# Android build host and macOS is the only host iOS builds on. `webcrypto`
+# compiles BoringSSL for the test host, so a toolchain problem on either shows
+# up here rather than on somebody's machine.
+#
+# The native files under `native/` are published for review and are not built
+# here: the core carries no Android or iOS project to build them in.
+#
+# Every action is pinned to a full commit SHA, the tag beside it for reading.
+# A tag can be moved by whoever controls the action's repository; a SHA cannot.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch makes an older run's answer worthless.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The version the app is built and tested with — not `stable`, which moves.
+  FLUTTER_VERSION: '3.44.8'
+
+jobs:
+  test:
+    name: Analyze and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      # A failure on one host must not hide the state of the other.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # The committed lock, exactly: a resolution that differs from it, or a
+      # package whose content hash differs from the one recorded, fails here.
+      - name: Dependencies
+        run: flutter pub get --enforce-lockfile
+
+      # Zero issues, infos included.
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test

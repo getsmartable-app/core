@@ -1,0 +1,60 @@
+# Ask OSV.dev whether any locked dependency has a published advisory.
+#
+# OSV-Scanner reads `pubspec.lock` and checks every package and version in it
+# against OSV.dev, which collects GitHub's advisories and the ecosystems' own.
+# A finding fails the run and, once the repository is public, is listed under
+# Security → Code scanning.
+#
+# Weekly as well as on every push, because an advisory is published against a
+# version already in use: a lock nobody touched can become vulnerable on a
+# Tuesday, and the badge should say so without waiting for a commit.
+#
+# What it cannot see: C compiled inside a package (BoringSSL in `webcrypto`)
+# and the Flutter engine. A passing run means no advisory is known for the
+# locked Dart packages — nothing more.
+name: Dependencies
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Code scanning is free on a public repository and needs a paid plan on a
+  # private one, and the organization stays on GitHub Free. A scheduled run's
+  # event carries no repository, so the visibility is asked of the API.
+  visibility:
+    name: Repository visibility
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      public: ${{ steps.read.outputs.public }}
+    steps:
+      - id: read
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          private=$(gh api "repos/$GITHUB_REPOSITORY" --jq .private)
+          if [ "$private" = false ]; then public=true; else public=false; fi
+          echo "public=$public" >> "$GITHUB_OUTPUT"
+
+  osv:
+    name: OSV-Scanner
+    needs: visibility
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
+    with:
+      # A pull request from a fork is given no write token, and a private
+      # repository on GitHub Free has no code scanning: in both, the results
+      # stay in the run's log rather than in the Security tab.
+      upload-sarif: ${{ github.event_name != 'pull_request' && needs.visibility.outputs.public == 'true' }}

@@ -1,0 +1,41 @@
+name: Bug report
+description: The published core behaves differently from what its code, tests or documents say.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **A vulnerability goes privately**, never here: use *Report a vulnerability* on the previous page, or see SECURITY.md.
+
+        **Never paste a recovery phrase, private key, password or PIN** — not a real one, and not one you only think is unused.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: A release such as v1.0.0, or a commit hash.
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: The commands, the test or the input — with made-up values only.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Flutter version and platform
+      description: The output of `flutter --version`, and the operating system.

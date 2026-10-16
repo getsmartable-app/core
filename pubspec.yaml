@@ -1,0 +1,33 @@
+name: smartable_wallet_core
+description: >-
+  The open-source core of Smartable Wallet, a non-custodial wallet:
+  how a typed secret becomes key material, encrypted-only secret
+  storage, the app PIN and its lockout, SLIP-39 split backup and the
+  platform key the wallet is sealed under.
+version: 1.0.0
+repository: https://github.com/getsmartable-app/core
+# Never to pub.dev: a package published there cannot be withdrawn.
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+# Exact versions: the ones the app resolves, so the core is tested
+# against what the app ships. Written by tool/core_export.py.
+dependencies:
+  flutter:
+    sdk: flutter
+  blockchain_utils: 7.1.0
+  cryptography: 2.9.0
+  flutter_secure_storage: 10.3.1
+  meta: 1.18.0
+  pointycastle: 4.0.0
+  shared_preferences: 2.5.5
+  unorm_dart: 0.3.2
+  webcrypto: 0.6.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: 6.0.0
+  flutter_secure_storage_platform_interface: 2.0.3
