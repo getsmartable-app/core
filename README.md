@@ -6,7 +6,9 @@
 
 [![CI](https://github.com/getsmartable-app/core/actions/workflows/ci.yml/badge.svg)](https://github.com/getsmartable-app/core/actions/workflows/ci.yml)
 [![Dependencies](https://github.com/getsmartable-app/core/actions/workflows/dependencies.yml/badge.svg)](https://github.com/getsmartable-app/core/actions/workflows/dependencies.yml)
+[![CodeQL](https://github.com/getsmartable-app/core/actions/workflows/codeql.yml/badge.svg)](https://github.com/getsmartable-app/core/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/getsmartable-app/core/badge)](https://securityscorecards.dev/viewer/?uri=github.com/getsmartable-app/core)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15544/badge)](https://www.bestpractices.dev/projects/15544)
 [![Release](https://img.shields.io/github/v/release/getsmartable-app/core)](https://github.com/getsmartable-app/core/releases)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Platforms: Android | iOS](https://img.shields.io/badge/platforms-Android%20%7C%20iOS-lightgrey)](#whats-inside)
