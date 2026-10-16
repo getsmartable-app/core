@@ -60,5 +60,10 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
+      # Ten minutes a test, not the default two: sealing a split-backup share
+      # derives an Argon2id key with 64 MiB of memory, and one test derives
+      # one with 128 MiB. On GitHub's two-core Linux runner, under the JIT,
+      # one derivation took 35 to 100 seconds (16 October 2026), so the
+      # default limit stopped a test that was still working.
       - name: Test
-        run: flutter test
+        run: flutter test --timeout=5x
