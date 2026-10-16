@@ -13,6 +13,11 @@
 #   gh attestation verify smartable-wallet-core-v1.0.0.tar.gz \
 #     --repo getsmartable-app/core
 #
+# The same attestation is attached to the release as
+# `smartable-wallet-core-vX.Y.Z.tar.gz.intoto.jsonl` (a Sigstore bundle), so it
+# can be checked with `--bundle` without asking GitHub's attestation API, and
+# so OpenSSF Scorecard, which reads release assets, finds the provenance.
+#
 # The tests run first. A tag whose tests fail publishes nothing.
 #
 # The attestation proves where the archive came from. It does not prove that
@@ -95,8 +100,10 @@ jobs:
       - name: Analyze
         run: flutter analyze
 
+      # Ten minutes a test, as in ci.yml: the Argon2id tests are slow on a
+      # two-core Linux runner.
       - name: Test
-        run: flutter test
+        run: flutter test --timeout=5x
 
       # From git rather than from the working tree, so nothing the steps above
       # wrote (.dart_tool, build/) can end up in the archive.
@@ -112,8 +119,15 @@ jobs:
           cat dist/SHA256SUMS
 
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        id: attest
         with:
           subject-path: dist/smartable-wallet-core-*.tar.gz
+
+      - name: Provenance beside the archive
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          TAG: ${{ github.ref_name }}
+        run: cp -- "$BUNDLE" "dist/smartable-wallet-core-${TAG}.tar.gz.intoto.jsonl"
 
       - name: Publish the release
         env:

@@ -84,6 +84,16 @@ The first shows the archive is the one the release lists. The second shows it
 was built by this repository's release workflow from the tagged commit,
 through GitHub's signing identity, without trusting us.
 
+The same attestation is attached to the release as
+`smartable-wallet-core-vX.Y.Z.tar.gz.intoto.jsonl`, a Sigstore bundle. With it
+the check does not ask GitHub's attestation API for the statement:
+
+```bash
+gh attestation verify smartable-wallet-core-vX.Y.Z.tar.gz \
+  --bundle smartable-wallet-core-vX.Y.Z.tar.gz.intoto.jsonl \
+  --repo getsmartable-app/core
+```
+
 Neither shows that an application binary was built from this source. The core
 is not a build of the application, and no reproducible build is claimed.
 
